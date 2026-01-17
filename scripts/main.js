@@ -1,9 +1,9 @@
 const calculatorState = {
-  firstValue: '0',
-  secondValue: '',
-  operator: '',
-  itHasOperator: false,
-  isEqualityPressed: false,
+  firstOperand: '0',
+  secondOperand: '',
+  operator: null,
+  hasDecimal: false,
+  isEqualPressed: false,
 };
 
 const calculatorElement = document.querySelector('.calculator');
@@ -21,7 +21,7 @@ function multiply(number1, number2) {
 }
 
 function divide(number1, number2) {
-  return round(number1 / number2);
+  return number1 / number2;
 }
 
 function round(value, decimals = 9) {
@@ -30,85 +30,112 @@ function round(value, decimals = 9) {
 
 function operate(operator, number1, number2) {
   if (operator === '+') {
-    return add(number1, number2);
+    return round(add(number1, number2));
   } else if (operator === '-') {
-    return subtract(number1, number2);
+    return round(subtract(number1, number2));
   } else if (operator === '*') {
-    return multiply(number1, number2);
+    return round(multiply(number1, number2));
   } else if (operator === '/') {
-    return divide(number1, number2);
+    return round(divide(number1, number2));
   }
 }
 
 function updateDisplay(value) {
   const displayElement = document.querySelector('.display');
-  displayElement.value = isFinite(value) ? value : "You can't divide by zero";
+  const decimalButton = document.querySelector('.decimal');
+  decimalButton.disabled = false;
+
+  if (!isFinite(value)) {
+    displayElement.value = "You can't divide by zero";
+    return;
+  } else if (!Number.isInteger(Number(value))) {
+    decimalButton.disabled = true;
+    calculatorState.hasDecimal = true;
+  }
+
+  displayElement.value = value;
 }
 
 function resetState() {
-  calculatorState.firstValue = '0';
-  calculatorState.secondValue = '';
-  calculatorState.operator = '';
-  calculatorState.itHasOperator = false;
-  calculatorState.isEqualityPressed = false;
-  updateDisplay(calculatorState.firstValue);
+  calculatorState.firstOperand = '0';
+  calculatorState.secondOperand = '';
+  calculatorState.operator = null;
+  calculatorState.isEqualPressed = false;
+  calculatorState.hasDecimal = false;
+  updateDisplay(calculatorState.firstOperand);
 }
 
 function inputNumber(number) {
-  if (calculatorState.isEqualityPressed) resetState();
+  if (calculatorState.isEqualPressed) resetState();
 
-  if (calculatorState.itHasOperator) {
-    calculatorState.secondValue += number;
-    updateDisplay(calculatorState.secondValue);
+  if (calculatorState.operator !== null) {
+    calculatorState.secondOperand === '0'
+      ? (calculatorState.secondOperand = number)
+      : (calculatorState.secondOperand += number);
+    updateDisplay(calculatorState.secondOperand);
     return;
   }
 
-  calculatorState.firstValue === '0'
-    ? (calculatorState.firstValue = number)
-    : (calculatorState.firstValue += number);
+  calculatorState.firstOperand === '0'
+    ? (calculatorState.firstOperand = number)
+    : (calculatorState.firstOperand += number);
 
-  updateDisplay(calculatorState.firstValue);
+  updateDisplay(calculatorState.firstOperand);
 }
 
 function inputOperator(operator) {
-  if (calculatorState.itHasOperator && calculatorState.secondValue) {
+  if (calculatorState.operator !== null && calculatorState.secondOperand) {
     const result = operate(
       calculatorState.operator,
-      Number(calculatorState.firstValue),
-      Number(calculatorState.secondValue)
+      Number(calculatorState.firstOperand),
+      Number(calculatorState.secondOperand)
     );
     updateDisplay(result);
 
-    calculatorState.firstValue = Number.isFinite(result) ? result : '0';
-    calculatorState.secondValue = '';
+    calculatorState.firstOperand = Number.isFinite(result) ? result : '0';
+    calculatorState.secondOperand = '';
     calculatorState.operator = operator;
+    calculatorState.hasDecimal = false;
     return;
   }
 
   calculatorState.operator = operator;
-  calculatorState.itHasOperator = true;
-  calculatorState.isEqualityPressed = false;
+  calculatorState.isEqualPressed = false;
+  calculatorState.hasDecimal = false;
 }
 
 function inputAction(action) {
   if (action === 'equals') {
-    if (!calculatorState.itHasOperator) return;
-    if (calculatorState.secondValue === '') return;
+    if (calculatorState.operator === null) return;
+    if (calculatorState.secondOperand === '') return;
 
     const result = operate(
       calculatorState.operator,
-      Number(calculatorState.firstValue),
-      Number(calculatorState.secondValue)
+      Number(calculatorState.firstOperand),
+      Number(calculatorState.secondOperand)
     );
-    updateDisplay(result);
 
-    calculatorState.firstValue = Number.isFinite(result) ? result : '0';
-    calculatorState.secondValue = '';
-    calculatorState.operator = '';
-    calculatorState.itHasOperator = false;
-    calculatorState.isEqualityPressed = true;
+    calculatorState.firstOperand = Number.isFinite(result) ? result : '0';
+    calculatorState.secondOperand = '';
+    calculatorState.operator = null;
+    calculatorState.isEqualPressed = true;
+    calculatorState.hasDecimal = false;
+    updateDisplay(result);
   } else if (action === 'clear') {
     resetState();
+  } else if (action === 'decimal') {
+    if (calculatorState.hasDecimal) return;
+
+    calculatorState.hasDecimal = true;
+
+    if (calculatorState.operator !== null) {
+      calculatorState.secondOperand += '.';
+      updateDisplay(calculatorState.secondOperand);
+      return;
+    }
+
+    calculatorState.firstOperand += '.';
+    updateDisplay(calculatorState.firstOperand);
   }
 }
 
