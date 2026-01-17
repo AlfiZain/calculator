@@ -7,6 +7,8 @@ const calculatorState = {
 };
 
 const calculatorElement = document.querySelector('.calculator');
+const displayElement = document.querySelector('.display');
+const decimalButton = document.querySelector('.decimal');
 
 function add(number1, number2) {
   return number1 + number2;
@@ -40,20 +42,23 @@ function operate(operator, number1, number2) {
   }
 }
 
-function updateDisplay(value) {
-  const displayElement = document.querySelector('.display');
-  const decimalButton = document.querySelector('.decimal');
-  decimalButton.disabled = false;
+function setHasDecimal() {
+  calculatorState.hasDecimal = displayElement.value.includes('.');
+  decimalButton.disabled = calculatorState.hasDecimal;
+}
 
+function getActiveOperandKey() {
+  return calculatorState.operator !== null ? 'secondOperand' : 'firstOperand';
+}
+
+function updateDisplay(value) {
   if (!isFinite(value)) {
     displayElement.value = "You can't divide by zero";
     return;
-  } else if (!Number.isInteger(Number(value))) {
-    decimalButton.disabled = true;
-    calculatorState.hasDecimal = true;
   }
 
   displayElement.value = value;
+  setHasDecimal();
 }
 
 function resetState() {
@@ -68,19 +73,12 @@ function resetState() {
 function inputNumber(number) {
   if (calculatorState.isEqualPressed) resetState();
 
-  if (calculatorState.operator !== null) {
-    calculatorState.secondOperand === '0'
-      ? (calculatorState.secondOperand = number)
-      : (calculatorState.secondOperand += number);
-    updateDisplay(calculatorState.secondOperand);
-    return;
-  }
+  const key = getActiveOperandKey();
 
-  calculatorState.firstOperand === '0'
-    ? (calculatorState.firstOperand = number)
-    : (calculatorState.firstOperand += number);
-
-  updateDisplay(calculatorState.firstOperand);
+  calculatorState[key] === '0'
+    ? (calculatorState[key] = number)
+    : (calculatorState[key] += number);
+  updateDisplay(calculatorState[key]);
 }
 
 function inputOperator(operator) {
@@ -95,13 +93,11 @@ function inputOperator(operator) {
     calculatorState.firstOperand = Number.isFinite(result) ? result : '0';
     calculatorState.secondOperand = '';
     calculatorState.operator = operator;
-    calculatorState.hasDecimal = false;
     return;
   }
 
   calculatorState.operator = operator;
   calculatorState.isEqualPressed = false;
-  calculatorState.hasDecimal = false;
 }
 
 function inputAction(action) {
@@ -126,19 +122,13 @@ function inputAction(action) {
   } else if (action === 'decimal') {
     if (calculatorState.hasDecimal) return;
 
-    calculatorState.hasDecimal = true;
+    calculatorState.isEqualPressed = false;
+    const key = getActiveOperandKey();
 
-    if (calculatorState.operator !== null) {
-      calculatorState.secondOperand += '.';
-      updateDisplay(calculatorState.secondOperand);
-      return;
-    }
-
-    calculatorState.firstOperand += '.';
-    updateDisplay(calculatorState.firstOperand);
+    calculatorState[key] += '.';
+    updateDisplay(calculatorState[key]);
   } else if (action === 'backspace') {
-    const key =
-      calculatorState.operator !== null ? 'secondOperand' : 'firstOperand';
+    const key = getActiveOperandKey();
 
     calculatorState[key] = String(calculatorState[key]).slice(0, -1) || '0';
     calculatorState.isEqualPressed = false;
