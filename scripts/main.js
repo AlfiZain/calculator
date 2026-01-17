@@ -136,6 +136,13 @@ function inputAction(action) {
 
     calculatorState.firstOperand += '.';
     updateDisplay(calculatorState.firstOperand);
+  } else if (action === 'backspace') {
+    const key =
+      calculatorState.operator !== null ? 'secondOperand' : 'firstOperand';
+
+    calculatorState[key] = String(calculatorState[key]).slice(0, -1) || '0';
+    calculatorState.isEqualPressed = false;
+    updateDisplay(calculatorState[key]);
   }
 }
 
