@@ -1,3 +1,27 @@
+const keyMap = {
+  0: '0',
+  1: '1',
+  2: '2',
+  3: '3',
+  4: '4',
+  5: '5',
+  6: '6',
+  7: '7',
+  8: '8',
+  9: '9',
+
+  '+': '+',
+  '-': '-',
+  '*': '*',
+  '/': '/',
+
+  '.': 'decimal',
+  '=': 'equals',
+  enter: 'equals',
+  c: 'clear',
+  backspace: 'backspace',
+};
+
 const calculatorState = {
   firstOperand: '0',
   secondOperand: '',
@@ -125,7 +149,7 @@ function inputAction(action) {
     calculatorState.isEqualPressed = false;
     const key = getActiveOperandKey();
 
-    calculatorState[key] += '.';
+    calculatorState[key] += calculatorState[key] === '' ? '0.' : '.';
     updateDisplay(calculatorState[key]);
   } else if (action === 'backspace') {
     const key = getActiveOperandKey();
@@ -155,6 +179,28 @@ function handleCalculatorClick(event) {
   }
 }
 
+function handleCalculatorKeydown(event) {
+  const value = keyMap[event.key.toLowerCase()];
+  if (!value) return;
+
+  const pressedButton = document.querySelector(
+    `.buttons button[data-value="${value}"]`
+  );
+
+  if (pressedButton) {
+    event.preventDefault();
+    pressedButton.click();
+  }
+}
+
 calculatorElement.addEventListener('click', (event) => {
   handleCalculatorClick(event);
+});
+
+calculatorElement.addEventListener('keydown', (event) => {
+  handleCalculatorKeydown(event);
+});
+
+window.addEventListener('DOMContentLoaded', () => {
+  calculatorElement.focus();
 });
