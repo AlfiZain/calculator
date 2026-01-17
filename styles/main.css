@@ -65,8 +65,11 @@ main {
   color: #ff7f50;
 }
 
+.buttons button.zero {
+  grid-column: 1 / span 3;
+}
+
 .buttons button.equals {
-  grid-column: 1 / span 4;
   font-size: 28px;
   background-color: #ff7f50;
   color: #efefef;
